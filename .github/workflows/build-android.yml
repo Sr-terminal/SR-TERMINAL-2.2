@@ -1,0 +1,64 @@
+name: Build Android APK & AAB
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - "**"
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    name: Build SR TERMINAL Android APK & AAB
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Set up Java 17 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Dependencies & Build Web Assets
+        run: |
+          npm ci || npm install
+          npm run build
+
+      - name: Sync Capacitor Android Project & Copy google-services.json
+        run: |
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
+          if [ -f "google-services.json" ]; then
+            cp google-services.json android/app/google-services.json
+          fi
+          npx cap sync android
+          chmod +x android/gradlew
+
+      - name: Build Debug APK (assembleDebug) & Release Bundle (bundleRelease)
+        working-directory: ./android
+        run: |
+          ./gradlew assembleDebug
+          ./gradlew bundleRelease
+
+      - name: Upload Testable APK Artifact (SR-TERMINAL-apk)
+        uses: actions/upload-artifact@v4
+        with:
+          name: SR-TERMINAL-apk
+          path: |
+            android/app/build/outputs/apk/debug/*.apk
+            android/app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error

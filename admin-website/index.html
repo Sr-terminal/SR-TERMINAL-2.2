@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SR TERMINAL — Standalone Admin Control Center</title>
+  <meta name="description" content="Isolated Cyber-Hardened Admin Control Website for SR TERMINAL (com.SRterminal.srterminal)" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <!-- =====================================================================
+       1. ULTRA-SECURE ADMIN LOGIN (Password + Brevo 6-Digit OTP + 5m Freeze)
+       ===================================================================== -->
+  <div id="auth-screen" class="auth-wrapper">
+    <div class="auth-card">
+      <div class="brand-row">
+        <div class="brand-logo mono">SR</div>
+        <div>
+          <div style="font-size: 15px; font-weight: 800; letter-spacing: 0.04em;" class="mono">
+            SR TERMINAL ADMIN PORTAL
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted);" class="mono">
+            Isolated Control Website · gen-lang-client-0327010007
+          </div>
+        </div>
+      </div>
+
+      <!-- 3-Attempt 5-Minute Freeze Countdown Banner -->
+      <div id="freeze-banner" class="alert-box alert-freeze hidden">
+        <div style="font-weight: 800; font-size: 12px; color: var(--bear); margin-bottom: 4px;" class="mono">
+          ⛔ SECURITY LOCKOUT ACTIVE (3 FAILED ATTEMPTS)
+        </div>
+        <div id="freeze-countdown-text" style="font-size: 12px;" class="mono">
+          Too many failed attempts. Login frozen for 05:00 to protect your account.
+        </div>
+      </div>
+
+      <!-- Status / Error Alert -->
+      <div id="auth-alert" class="alert-box hidden"></div>
+
+      <!-- STEP 1: Administrator Email + Password -->
+      <form id="login-step1-form">
+        <div class="form-group">
+          <label class="form-label mono" for="admin-email">Authorized Administrator Email</label>
+          <input
+            id="admin-email"
+            type="email"
+            class="form-input mono"
+            value="surajrayxyz09@gmail.com"
+            placeholder="surajrayxyz09@gmail.com"
+            required
+            autocomplete="username"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label mono" for="admin-password">Administrator Master Password</label>
+          <input
+            id="admin-password"
+            type="password"
+            class="form-input mono"
+            placeholder="Enter administrator password..."
+            required
+            autocomplete="current-password"
+          />
+        </div>
+
+        <button id="btn-step1-submit" type="submit" class="btn btn-primary mono" style="width: 100%; margin-top: 6px;">
+          VERIFY PASSWORD &amp; SEND 6-DIGIT BREVO OTP
+        </button>
+      </form>
+
+      <!-- STEP 2: Mandatory 6-Digit Brevo Email OTP -->
+      <form id="login-step2-form" class="hidden">
+        <div style="margin-bottom: 12px; font-size: 12px; color: var(--text-secondary);">
+          A 6-digit cryptographic OTP has been dispatched via Brevo Transactional HTTPS API to
+          <strong class="mono" style="color: #FFFFFF;">surajrayxyz09@gmail.com</strong>.
+        </div>
+
+        <div class="form-group">
+          <label class="form-label mono" for="admin-otp">6-Digit Brevo Email OTP</label>
+          <input
+            id="admin-otp"
+            type="text"
+            maxlength="6"
+            pattern="[0-9]{6}"
+            inputmode="numeric"
+            class="form-input mono"
+            style="font-size: 18px; letter-spacing: 0.35em; text-align: center; font-weight: 800;"
+            placeholder="000000"
+            required
+          />
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 10px;">
+          <button id="btn-step2-verify" type="submit" class="btn btn-primary mono" style="flex: 1;">
+            VERIFY OTP &amp; UNLOCK CONSOLE
+          </button>
+          <button id="btn-step2-back" type="button" class="btn btn-secondary mono">
+            BACK
+          </button>
+        </div>
+      </form>
+
+      <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); font-size: 10px; color: var(--text-muted);" class="mono">
+        <div>• Strict Access: Restricted to surajrayxyz09@gmail.com</div>
+        <div>• Brute-Force Defense: 3 wrong attempts = 5-Minute IP &amp; Account Freeze</div>
+        <div>• Connected DB: ai-studio-srterminalprivat-41ef7494-5a58-4184-8c13-0b1ee9f8f190</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       2. LIVE STANDALONE ADMIN CONTROL DASHBOARD
+       ===================================================================== -->
+  <div id="dashboard-screen" class="hidden">
+    <header class="topbar">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div class="brand-logo mono">SR</div>
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 15px; font-weight: 800;" class="mono">SR TERMINAL — ADMIN COMMAND WEBSITE</span>
+            <span class="badge badge-bull mono">● LIVE CLOUD FIRESTORE</span>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted);" class="mono">
+            Project: gen-lang-client-0327010007 · Package: com.SRterminal.srterminal · Admin: surajrayxyz09@gmail.com
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <span id="last-sync-badge" class="badge badge-neutral mono">Synced: Just now</span>
+        <button id="btn-refresh-all" type="button" class="btn btn-secondary btn-sm mono">
+          ↻ REFRESH DATA
+        </button>
+        <button id="btn-admin-logout" type="button" class="btn btn-bear btn-sm mono">
+          LOG OUT ADMIN
+        </button>
+      </div>
+    </header>
+
+    <main class="container">
+      <!-- Action Feedback Toast -->
+      <div id="dashboard-toast" class="alert-box alert-success hidden"></div>
+
+      <!-- Real-Time KPI Cards -->
+      <section class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label mono">1. Total Registered Users</div>
+          <div id="kpi-total-users" class="kpi-value mono">0</div>
+          <div id="kpi-total-users-sub" class="kpi-sub mono">Synced with Firestore users collection</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label mono">2. Currently Online / Logged-In</div>
+          <div id="kpi-online-users" class="kpi-value mono" style="color: var(--bull);">0</div>
+          <div id="kpi-online-users-sub" class="kpi-sub mono">Active session &amp; SSE connections</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label mono">3. Active Pro Subscribers</div>
+          <div id="kpi-pro-users" class="kpi-value mono" style="color: var(--bull);">0</div>
+          <div id="kpi-pro-users-sub" class="kpi-sub mono">Google Play Billing + Trial active</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label mono">4. Cancelled Auto-Pay Users</div>
+          <div id="kpi-cancelled-autopay" class="kpi-value mono" style="color: var(--amber);">0</div>
+          <div class="kpi-sub mono">RBI Mandate Stopped · Pro active till expiry</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label mono">5. Locked / Flagged Accounts</div>
+          <div id="kpi-locked-users" class="kpi-value mono" style="color: var(--bear);">0</div>
+          <div id="kpi-locked-users-sub" class="kpi-sub mono">5-Min Frozen or Blocked accounts</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label mono">6. Global Trade Win / Loss Stats</div>
+          <div id="kpi-win-rate" class="kpi-value mono" style="color: var(--bull);">0.0%</div>
+          <div id="kpi-win-loss-sub" class="kpi-sub mono">0W / 0L · Net 0.00R</div>
+        </div>
+      </section>
+
+      <!-- Navigation Tabs -->
+      <div class="tabs-bar">
+        <button type="button" class="tab-btn active mono" data-tab="users-tab">
+          👥 USER MANAGEMENT &amp; PRO LICENSING
+        </button>
+        <button type="button" class="tab-btn mono" data-tab="security-tab">
+          🛡️ CYBER SECURITY &amp; 5-MIN FREEZE LOGS
+        </button>
+        <button type="button" class="tab-btn mono" data-tab="fcm-tab">
+          🔔 24/7 CLOSED-APP FCM PUSH &amp; ENGINE WATCHER
+        </button>
+      </div>
+
+      <!-- TAB 1: FULL USER MANAGEMENT TABLE -->
+      <section id="users-tab" class="panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title mono">User Directory &amp; One-Click Entitlement Controls</div>
+            <div style="font-size: 11px; color: var(--text-muted);" class="mono">
+              Grant/Extend Pro, Revoke Pro, Unlock 5-Min Frozen Account, or Ban/Remove User in real time
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <input
+              id="user-search-input"
+              type="text"
+              class="form-input mono"
+              style="width: 240px;"
+              placeholder="Search email, name, UID..."
+            />
+            <select id="user-filter-select" class="form-select mono" style="width: 190px;">
+              <option value="ALL">Filter: All Users</option>
+              <option value="PRO">Active Pro / Trial</option>
+              <option value="AUTOPAY_CANCELLED">Cancelled Auto-Pay</option>
+              <option value="FROZEN">5-Min Frozen Accounts</option>
+              <option value="BLOCKED">Banned / Blocked</option>
+              <option value="FREE">Free Tier</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Trader / Email / UID</th>
+                <th>Subscription &amp; Plan</th>
+                <th>RBI Auto-Pay Status</th>
+                <th>Validity / Expiry</th>
+                <th>Security &amp; Status</th>
+                <th>Last Login / FCM</th>
+                <th>One-Click Admin Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-table-body">
+              <tr>
+                <td colspan="7" class="mono" style="text-align: center; padding: 28px; color: var(--text-muted);">
+                  Loading synchronized user records from Cloud Firestore...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TAB 2: CYBER SECURITY & FAILED LOGIN LOGS -->
+      <section id="security-tab" class="panel hidden">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title mono">Cyber Security Audit &amp; 3-Attempt 5-Minute Freeze Logs</div>
+            <div style="font-size: 11px; color: var(--text-muted);" class="mono">
+              Live brute-force tracking across Firestore security_logs &amp; Server IP/Device lockouts
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <input
+              id="unlock-identifier-input"
+              type="text"
+              class="form-input mono"
+              style="width: 250px;"
+              placeholder="Email or IP/Device to unlock..."
+            />
+            <button id="btn-manual-unlock" type="button" class="btn btn-bull btn-sm mono">
+              🔓 UNLOCK 5-MIN FROZEN ACCOUNT / IP
+            </button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Identifier / Email</th>
+                <th>Device Fingerprint / IP</th>
+                <th>Event Type</th>
+                <th>Failed Attempts</th>
+                <th>5-Min Freeze State</th>
+                <th>Reason / Timestamp</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="security-table-body">
+              <tr>
+                <td colspan="7" class="mono" style="text-align: center; padding: 28px; color: var(--text-muted);">
+                  Loading security logs...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TAB 3: 24/7 CLOSED-APP FCM PUSH & ENGINE WATCHER -->
+      <section id="fcm-tab" class="panel hidden">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title mono">24/7 Closed-App FCM Push Dispatcher &amp; Global Trade Watcher</div>
+            <div style="font-size: 11px; color: var(--text-muted);" class="mono">
+              Firebase Admin SDK (firebase-admin) + High-Priority Channel (sr-trade-alerts-v2, importance: 5)
+            </div>
+          </div>
+        </div>
+
+        <div style="padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+          <div style="background: var(--bg-primary); border: 1px solid var(--border); border-radius: 10px; padding: 16px;">
+            <div style="font-size: 12px; font-weight: 700; margin-bottom: 10px;" class="mono">
+              DISPATCH 24/7 CLOSED-APP LIFECYCLE PUSH TEST
+            </div>
+            <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">
+              Trigger an instant high-priority FCM push notification across all registered Android/Web devices for any of the 5 lifecycle events:
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <button type="button" class="btn btn-bull btn-sm mono fcm-trigger-btn" data-lifecycle="ENTRY_CONFIRMED">
+                1. Dispatch Safe Entry Confirmed (Entry, Protected SL, TP1, R:R)
+              </button>
+              <button type="button" class="btn btn-amber btn-sm mono fcm-trigger-btn" data-lifecycle="MOVE_BREAKEVEN">
+                2. Dispatch Move Stop Loss to Break-Even (+1.0R Reached)
+              </button>
+              <button type="button" class="btn btn-bull btn-sm mono fcm-trigger-btn" data-lifecycle="TP1_HIT">
+                3. Dispatch Take Profit (TP1 / TP2 / TP3) Hit
+              </button>
+              <button type="button" class="btn btn-bear btn-sm mono fcm-trigger-btn" data-lifecycle="STOP_HIT">
+                4. Dispatch Stop Loss (SL) Hit / Setup Invalidated
+              </button>
+              <button type="button" class="btn btn-bear btn-sm mono fcm-trigger-btn" data-lifecycle="RED_FOLDER_15M_ALERT">
+                5. Dispatch 15-Minute Red-Folder High-Impact News Alert
+              </button>
+            </div>
+          </div>
+
+          <div style="background: var(--bg-primary); border: 1px solid var(--border); border-radius: 10px; padding: 16px;">
+            <div style="font-size: 12px; font-weight: 700; margin-bottom: 10px;" class="mono">
+              24/7 SERVER WATCHER &amp; REGISTERED FCM DEVICES
+            </div>
+            <div id="fcm-status-box" class="mono" style="font-size: 11px; color: var(--text-secondary); line-height: 1.8;">
+              Loading 24/7 watcher telemetry...
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="./admin.js"></script>
+</body>
+</html>

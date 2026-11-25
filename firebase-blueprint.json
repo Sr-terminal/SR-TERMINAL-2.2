@@ -1,0 +1,275 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Production trader account profile, Google Play subscription entitlement, RBI Auto-Pay mandate state, FCM closed-app push tokens, and brute-force lockout state",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Unique Firebase Auth UID" },
+        "name": { "type": "string", "description": "Display name" },
+        "email": { "type": "string", "format": "email", "description": "User email address" },
+        "phone": { "type": "string", "description": "User phone number" },
+        "photoUrl": { "type": "string", "description": "Avatar photo URL" },
+        "role": { "type": "string", "enum": ["user", "admin"], "description": "Access role" },
+        "accountStatus": { "type": "string", "enum": ["active", "blocked", "suspended"], "description": "Account status" },
+        "isEmailVerified": { "type": "boolean" },
+        "isPhoneVerified": { "type": "boolean" },
+        "trialUsed": { "type": "boolean", "description": "Immutable flag tracking whether the 24-hour free trial was used" },
+        "isTrial": { "type": "boolean" },
+        "trialStart": { "type": "string", "format": "date-time" },
+        "trialExpiry": { "type": "string", "format": "date-time" },
+        "trialExpiresAt": { "type": "string", "format": "date-time" },
+        "subscriptionStatus": { "type": "string", "enum": ["none", "trial", "trial_expired", "active", "PRO", "expired", "pending", "cancelled", "blocked"] },
+        "subscriptionPlan": { "type": "string", "description": "Active plan ID" },
+        "subscriptionTier": { "type": "string", "enum": ["FREE", "FREE_AD_SUPPORTED", "TRIAL_24H", "LEVEL_1_STARTER", "LEVEL_2_ADVANCED", "LEVEL_3_FUNDED_ELITE"], "description": "Subscription tier level" },
+        "subscriptionStart": { "type": "string", "format": "date-time" },
+        "subscriptionExpiry": { "type": "string", "format": "date-time" },
+        "autoPayEnabled": { "type": "boolean", "description": "Whether recurring Google Play Auto-Pay mandate is active" },
+        "cancelAtPeriodEnd": { "type": "boolean", "description": "RBI-compliant flag: Auto-Pay cancelled so no future charge occurs, while current Pro access stays 100% active until subscriptionExpiry" },
+        "autoPayCancelledAt": { "type": "string", "format": "date-time" },
+        "lastOrderId": { "type": "string" },
+        "lastPurchaseToken": { "type": "string" },
+        "fcmTokens": { "type": "array", "description": "Registered Firebase Cloud Messaging tokens for 24/7 closed-app push notifications" },
+        "failedAttempts": { "type": "number", "description": "Consecutive failed login or OTP attempts" },
+        "lockedUntil": { "type": "number", "description": "Epoch timestamp (ms) until which login/OTP is frozen (5-minute lockout on 3 failed attempts)" },
+        "lastFailedAt": { "type": "string", "format": "date-time" },
+        "passwordUpdatedAt": { "type": "string", "format": "date-time" },
+        "deviceFingerprint": { "type": "string" },
+        "adUsage": {
+          "type": "object",
+          "description": "Server-enforced daily rewarded ad usage counter { date: YYYY-MM-DD, count: number }"
+        },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "lastLoginAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "role", "subscriptionStatus", "createdAt"]
+    },
+    "FundedAccountProfile": {
+      "title": "FundedAccountProfile",
+      "description": "Cloud-persisted Prop Firm Funded Account Pass Manager profile ($5K-$200K challenge rules, Ment Funding, Blue Guardian, Goat Funded Trader presets, 60% daily safety shield, and recovery risk scaling)",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "firmName": { "type": "string" },
+        "propFirm": { "type": "string" },
+        "accountSizeUsd": { "type": "number" },
+        "stage": { "type": "string", "enum": ["PHASE_1", "PHASE_2", "LIVE_FUNDED"] },
+        "drawdownModel": { "type": "string", "enum": ["STATIC", "TRAILING"] },
+        "highWaterMarkEquityUsd": { "type": "number" },
+        "dailyDrawdownLimitPct": { "type": "number" },
+        "dailyDrawdownPct": { "type": "number" },
+        "maxOverallDrawdownLimitPct": { "type": "number" },
+        "maxOverallDrawdownPct": { "type": "number" },
+        "maxSingleTradeLossCapPct": { "type": "number" },
+        "profitTargetPct": { "type": "number" },
+        "minTradingDays": { "type": "number" },
+        "completedTradingDays": { "type": "number" },
+        "minProfitableDayPct": { "type": "number" },
+        "inactivityLimitDays": { "type": "number" },
+        "lastTradeDateIso": { "type": "string" },
+        "newsLockoutMinutes": { "type": "number" },
+        "newsProfitCapPct": { "type": "number" },
+        "weekendHoldingAllowed": { "type": "boolean" },
+        "mandatoryStopLoss": { "type": "boolean" },
+        "currentEquityUsd": { "type": "number" },
+        "todayStartEquityUsd": { "type": "number" },
+        "todayPnlUsd": { "type": "number" },
+        "dailyPnlUsd": { "type": "number" },
+        "bestWinningDayUsd": { "type": "number" },
+        "bestSingleDayProfitUsd": { "type": "number" },
+        "normalRiskPerTradePct": { "type": "number" },
+        "baseRiskPct": { "type": "number" },
+        "recoveryRiskPerTradePct": { "type": "number" },
+        "safetyShieldBufferRatio": { "type": "number" },
+        "newsLockoutEnabled": { "type": "boolean" },
+        "consistencyRuleMaxDaySharePct": { "type": "number" },
+        "lastServerResetDay": { "type": "string" },
+        "lastResetDateIso": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "accountSizeUsd", "stage", "currentEquityUsd", "updatedAt"]
+    },
+    "TradeJournalRecord": {
+      "title": "TradeJournalRecord",
+      "description": "Cloud-persisted ICT trade journal record with separate initialStopLoss and currentStopLoss",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "uid": { "type": "string" },
+        "symbolId": { "type": "string" },
+        "symbolLabel": { "type": "string" },
+        "tf": { "type": "string" },
+        "direction": { "type": "string", "enum": ["LONG", "SHORT"] },
+        "model": { "type": "string" },
+        "entry": { "type": "number" },
+        "initialStopLoss": { "type": "number" },
+        "currentStopLoss": { "type": "number" },
+        "stop": { "type": "number" },
+        "tp1": { "type": "number" },
+        "tp2": { "type": "number" },
+        "tp3": { "type": "number" },
+        "stage": { "type": "string" },
+        "status": { "type": "string" },
+        "resultR": { "type": "number" },
+        "rMultiple": { "type": "number" },
+        "beProtected": { "type": "boolean" },
+        "confluences": { "type": "array" },
+        "logicSummary": { "type": "string" },
+        "createdTs": { "type": "number" },
+        "statusTs": { "type": "number" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "uid", "symbolId", "direction", "entry", "initialStopLoss", "currentStopLoss", "status"]
+    },
+    "ChartDrawingRecord": {
+      "title": "ChartDrawingRecord",
+      "description": "Cloud-persisted user chart drawings and indicator overlay preferences per symbol",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "uid": { "type": "string" },
+        "symbolId": { "type": "string" },
+        "chartView": { "type": "string", "enum": ["SR", "TV"] },
+        "toggles": { "type": "object" },
+        "drawingsJson": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "uid", "symbolId", "updatedAt"]
+    },
+    "SecurityLog": {
+      "title": "SecurityLog",
+      "description": "Security audit and brute-force lockout log entry",
+      "type": "object",
+      "properties": {
+        "identifier": { "type": "string", "description": "Email or IP/device fingerprint key" },
+        "email": { "type": "string" },
+        "ip": { "type": "string" },
+        "deviceFingerprint": { "type": "string" },
+        "eventType": { "type": "string", "enum": ["AUTH_FAILED", "OTP_FAILED", "ACCOUNT_FROZEN_5M", "AUTH_SUCCESS", "LOCKOUT_RESET"] },
+        "failedAttempts": { "type": "number" },
+        "lockedUntil": { "type": "number" },
+        "reason": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["identifier", "eventType", "failedAttempts", "createdAt"]
+    },
+    "EmailOtpRecord": {
+      "title": "EmailOtpRecord",
+      "description": "Hashed 6-digit email OTP verification record with 5-minute expiry",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email" },
+        "codeHash": { "type": "string" },
+        "salt": { "type": "string" },
+        "attempts": { "type": "number" },
+        "expiresAt": { "type": "number" },
+        "lockedUntil": { "type": "number" },
+        "createdAt": { "type": "number" },
+        "purpose": { "type": "string" }
+      },
+      "required": ["email", "codeHash", "salt", "attempts", "expiresAt", "createdAt"]
+    },
+    "PasswordResetRecord": {
+      "title": "PasswordResetRecord",
+      "description": "Hashed 1-hour single-use password reset token record",
+      "type": "object",
+      "properties": {
+        "tokenHash": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "expiresAt": { "type": "number" },
+        "createdAt": { "type": "number" },
+        "used": { "type": "boolean" },
+        "usedAt": { "type": "number" }
+      },
+      "required": ["tokenHash", "email", "expiresAt", "createdAt", "used"]
+    },
+    "SubscriptionTransaction": {
+      "title": "SubscriptionTransaction",
+      "description": "Google Play Billing and RBI Auto-Pay subscription verification ledger",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "productId": { "type": "string" },
+        "planName": { "type": "string" },
+        "orderId": { "type": "string" },
+        "purchaseToken": { "type": "string" },
+        "status": { "type": "string", "enum": ["ACTIVE", "PRO", "EXPIRED", "CANCELLED", "PENDING", "TRIAL"] },
+        "autoPayEnabled": { "type": "boolean" },
+        "cancelAtPeriodEnd": { "type": "boolean" },
+        "cancelledAt": { "type": "string", "format": "date-time" },
+        "startTime": { "type": "string", "format": "date-time" },
+        "expiryTime": { "type": "string", "format": "date-time" },
+        "verifiedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "productId", "status", "startTime", "expiryTime"]
+    },
+    "SystemConfig": {
+      "title": "SystemConfig",
+      "description": "Remote killswitch, version enforcement, and global parameters",
+      "type": "object",
+      "properties": {
+        "minSupportedVersion": { "type": "string" },
+        "latestVersion": { "type": "string" },
+        "maintenanceMode": { "type": "boolean" },
+        "announcement": { "type": "string" },
+        "playStoreUrl": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "DeletionRequest": {
+      "title": "DeletionRequest",
+      "description": "User account deletion request for Google Play Data Safety compliance",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "reason": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "completed"] },
+        "requestedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "status", "requestedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Individual user profile, subscription entitlement, RBI Auto-Pay state, FCM tokens, and brute-force lockout state"
+    },
+    "/users/{uid}/journals/{tradeId}": {
+      "schema": { "$ref": "#/entities/TradeJournalRecord" },
+      "description": "Cloud-persisted trade journal entries per user"
+    },
+    "/users/{uid}/drawings/{drawingId}": {
+      "schema": { "$ref": "#/entities/ChartDrawingRecord" },
+      "description": "Cloud-persisted chart drawings and overlay toggles per user"
+    },
+    "/funded_accounts/{uid}": {
+      "schema": { "$ref": "#/entities/FundedAccountProfile" },
+      "description": "Cloud-persisted Funded Account / Prop Firm Pass Manager profile per user"
+    },
+    "/security_logs/{logId}": {
+      "schema": { "$ref": "#/entities/SecurityLog" },
+      "description": "Brute-force lockout state and security audit logs"
+    },
+    "/email_otps/{otpId}": {
+      "schema": { "$ref": "#/entities/EmailOtpRecord" },
+      "description": "Hashed 6-digit email OTP verification records with 5-minute expiry"
+    },
+    "/password_resets/{tokenId}": {
+      "schema": { "$ref": "#/entities/PasswordResetRecord" },
+      "description": "Hashed 1-hour single-use password reset token records"
+    },
+    "/subscriptions/{subId}": {
+      "schema": { "$ref": "#/entities/SubscriptionTransaction" },
+      "description": "Audit log of Google Play subscription purchases and RBI Auto-Pay status"
+    },
+    "/system_config/{configId}": {
+      "schema": { "$ref": "#/entities/SystemConfig" },
+      "description": "App-wide remote configuration controlled by admins"
+    },
+    "/deletionRequests/{requestId}": {
+      "schema": { "$ref": "#/entities/DeletionRequest" },
+      "description": "Account deletion requests submitted by users"
+    }
+  }
+}

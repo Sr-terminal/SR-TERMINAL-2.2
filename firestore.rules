@@ -1,0 +1,368 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
+        (request.auth.token.email == "surajrayxyz09@gmail.com" && request.auth.token.email_verified == true)
+      );
+    }
+
+    function isValidString(val, maxLen) {
+      return val is string && val.size() <= maxLen;
+    }
+
+    function isOptionalString(field, maxLen) {
+      return !(field in request.resource.data) ||
+             request.resource.data[field] == null ||
+             isValidString(request.resource.data[field], maxLen);
+    }
+
+    function isOptionalBool(field) {
+      return !(field in request.resource.data) ||
+             request.resource.data[field] == null ||
+             request.resource.data[field] is bool;
+    }
+
+    function isOptionalNumber(field) {
+      return !(field in request.resource.data) ||
+             request.resource.data[field] == null ||
+             request.resource.data[field] is number;
+    }
+
+    function isValidFcmTokens() {
+      return !('fcmTokens' in request.resource.data) ||
+             request.resource.data.fcmTokens == null ||
+             (
+               request.resource.data.fcmTokens is list &&
+               request.resource.data.fcmTokens.size() <= 20 &&
+               (request.resource.data.fcmTokens.size() == 0 || (request.resource.data.fcmTokens[0] is string && request.resource.data.fcmTokens[0].size() <= 512))
+             );
+    }
+
+    function isValidAdUsage() {
+      return !('adUsage' in request.resource.data) ||
+             request.resource.data.adUsage == null ||
+             (
+               request.resource.data.adUsage is map &&
+               request.resource.data.adUsage.keys().hasAll(['date', 'count']) &&
+               request.resource.data.adUsage.date is string &&
+               request.resource.data.adUsage.date.size() == 10 &&
+               request.resource.data.adUsage.count is number &&
+               request.resource.data.adUsage.count >= 0 &&
+               request.resource.data.adUsage.count <= 5
+             );
+    }
+
+    function isValidUserPayload() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['uid', 'role', 'subscriptionStatus', 'createdAt']) &&
+             data.uid is string && data.uid.size() > 0 && data.uid.size() <= 128 &&
+             data.role in ['user', 'admin'] &&
+             data.subscriptionStatus in ['none', 'trial', 'trial_expired', 'active', 'PRO', 'expired', 'pending', 'cancelled', 'blocked'] &&
+             isValidString(data.createdAt, 64) &&
+             isOptionalString('name', 120) &&
+             isOptionalString('email', 256) &&
+             isOptionalString('phone', 32) &&
+             isOptionalString('photoUrl', 1024) &&
+             isOptionalString('subscriptionPlan', 64) &&
+             isOptionalString('subscriptionTier', 64) &&
+             isOptionalString('subscriptionStart', 64) &&
+             isOptionalString('subscriptionExpiry', 64) &&
+             isOptionalString('trialStart', 64) &&
+             isOptionalString('trialExpiry', 64) &&
+             isOptionalString('trialActivatedAt', 64) &&
+             isOptionalString('trialExpiresAt', 64) &&
+             isOptionalString('autoPayCancelledAt', 64) &&
+             isOptionalString('lastOrderId', 128) &&
+             isOptionalString('lastPurchaseToken', 512) &&
+             isOptionalString('lastLoginAt', 64) &&
+             isOptionalString('updatedAt', 64) &&
+             isOptionalString('lastFailedAt', 64) &&
+             isOptionalString('passwordUpdatedAt', 64) &&
+             isOptionalString('deviceFingerprint', 256) &&
+             isOptionalBool('isEmailVerified') &&
+             isOptionalBool('isPhoneVerified') &&
+             isOptionalBool('isTrial') &&
+             isOptionalBool('trialUsed') &&
+             isOptionalBool('autoPayEnabled') &&
+             isOptionalBool('cancelAtPeriodEnd') &&
+             isOptionalNumber('failedAttempts') &&
+             isOptionalNumber('lockedUntil') &&
+             isValidFcmTokens() &&
+             isValidAdUsage() &&
+             (!( 'accountStatus' in data ) || data.accountStatus in ['active', 'blocked', 'suspended']);
+    }
+
+    function isValidFundedAccountPayload(userId) {
+      let data = request.resource.data;
+      return data.keys().hasAll(['uid', 'accountSizeUsd', 'stage', 'currentEquityUsd', 'updatedAt']) &&
+             data.uid == userId &&
+             data.accountSizeUsd is number && data.accountSizeUsd > 0 && data.accountSizeUsd <= 10000000 &&
+             data.stage in ['PHASE_1', 'PHASE_2', 'LIVE_FUNDED'] &&
+             data.currentEquityUsd is number && data.currentEquityUsd >= 0 &&
+             isValidString(data.updatedAt, 64) &&
+             isOptionalString('firmName', 120) &&
+             isOptionalString('propFirm', 120) &&
+             isOptionalString('drawdownModel', 32) &&
+             isOptionalString('lastServerResetDay', 32) &&
+             isOptionalString('lastResetDateIso', 32) &&
+             isOptionalString('lastTradeDateIso', 32) &&
+             isOptionalNumber('highWaterMarkEquityUsd') &&
+             isOptionalNumber('dailyDrawdownLimitPct') &&
+             isOptionalNumber('dailyDrawdownPct') &&
+             isOptionalNumber('maxOverallDrawdownLimitPct') &&
+             isOptionalNumber('maxOverallDrawdownPct') &&
+             isOptionalNumber('maxSingleTradeLossCapPct') &&
+             isOptionalNumber('profitTargetPct') &&
+             isOptionalNumber('minTradingDays') &&
+             isOptionalNumber('completedTradingDays') &&
+             isOptionalNumber('minProfitableDayPct') &&
+             isOptionalNumber('inactivityLimitDays') &&
+             isOptionalNumber('newsLockoutMinutes') &&
+             isOptionalNumber('newsProfitCapPct') &&
+             isOptionalNumber('todayStartEquityUsd') &&
+             isOptionalNumber('todayPnlUsd') &&
+             isOptionalNumber('dailyPnlUsd') &&
+             isOptionalNumber('bestWinningDayUsd') &&
+             isOptionalNumber('bestSingleDayProfitUsd') &&
+             isOptionalNumber('normalRiskPerTradePct') &&
+             isOptionalNumber('baseRiskPct') &&
+             isOptionalNumber('recoveryRiskPerTradePct') &&
+             isOptionalNumber('safetyShieldBufferRatio') &&
+             isOptionalNumber('consistencyRuleMaxDaySharePct') &&
+             isOptionalBool('newsLockoutEnabled') &&
+             isOptionalBool('weekendHoldingAllowed') &&
+             isOptionalBool('mandatoryStopLoss');
+    }
+
+    function isValidTradeJournalPayload(userId) {
+      let data = request.resource.data;
+      return data.keys().hasAll(['id', 'uid', 'symbolId', 'direction', 'entry', 'initialStopLoss', 'currentStopLoss', 'status']) &&
+             data.uid == userId &&
+             isValidString(data.id, 128) &&
+             isValidString(data.symbolId, 32) &&
+             data.direction in ['LONG', 'SHORT'] &&
+             data.entry is number &&
+             data.initialStopLoss is number &&
+             data.currentStopLoss is number &&
+             isValidString(data.status, 32);
+    }
+
+    function isValidChartDrawingPayload(userId) {
+      let data = request.resource.data;
+      return data.keys().hasAll(['id', 'uid', 'symbolId', 'updatedAt']) &&
+             data.uid == userId &&
+             isValidString(data.id, 128) &&
+             isValidString(data.symbolId, 32) &&
+             isValidString(data.updatedAt, 64);
+    }
+
+    function isValidSubscriptionPayload() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['uid', 'productId', 'status', 'startTime', 'expiryTime']) &&
+             data.uid is string && data.uid.size() > 0 && data.uid.size() <= 128 &&
+             isValidString(data.productId, 64) &&
+             data.status in ['ACTIVE', 'PRO', 'EXPIRED', 'CANCELLED', 'PENDING', 'TRIAL'] &&
+             isValidString(data.startTime, 64) &&
+             isValidString(data.expiryTime, 64) &&
+             isOptionalString('planName', 120) &&
+             isOptionalString('tierLevel', 64) &&
+             isOptionalString('orderId', 128) &&
+             isOptionalString('purchaseToken', 512) &&
+             isOptionalString('verifiedAt', 64) &&
+             isOptionalString('requestedAt', 64) &&
+             isOptionalString('cancelledAt', 64) &&
+             isOptionalString('platform', 64) &&
+             isOptionalBool('isTrial') &&
+             isOptionalBool('adFree') &&
+             isOptionalBool('autoPayEnabled') &&
+             isOptionalBool('cancelAtPeriodEnd') &&
+             (!( 'amountInr' in data ) || (data.amountInr is number && data.amountInr >= 0 && data.amountInr <= 100000));
+    }
+
+    function isValidDeletionRequestPayload() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['uid', 'status', 'requestedAt']) &&
+             data.uid is string && data.uid == request.auth.uid &&
+             data.status == 'pending' &&
+             isValidString(data.requestedAt, 64) &&
+             isOptionalString('reason', 1000);
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    // 1. Users Collection & Cloud Subcollections (Journals & Drawings)
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+
+      allow create: if isAuthenticated() &&
+                    isValidUserPayload() &&
+                    request.resource.data.uid == userId &&
+                    (
+                      isAdmin() ||
+                      (
+                        isOwner(userId) &&
+                        request.resource.data.role == 'user' &&
+                        request.resource.data.subscriptionStatus in ['none', 'trial'] &&
+                        (!('accountStatus' in request.resource.data) || request.resource.data.accountStatus == 'active')
+                      )
+                    );
+
+      allow update: if isAuthenticated() &&
+                    isValidUserPayload() &&
+                    request.resource.data.uid == resource.data.uid &&
+                    request.resource.data.createdAt == resource.data.createdAt &&
+                    (
+                      isAdmin() ||
+                      (
+                        isOwner(userId) &&
+                        request.resource.data.role == resource.data.role &&
+                        (!('accountStatus' in request.resource.data) || request.resource.data.accountStatus == resource.data.get('accountStatus', 'active')) &&
+                        (resource.data.get('trialUsed', false) == false || request.resource.data.get('trialUsed', false) == true) &&
+                        (
+                          // A) Standard profile metadata, FCM token sync, RBI Auto-Pay cancel sync, or brute-force attempt counter update
+                          (
+                            request.resource.data.subscriptionStatus == resource.data.subscriptionStatus &&
+                            request.resource.data.get('subscriptionPlan', 'none') == resource.data.get('subscriptionPlan', 'none') &&
+                            request.resource.data.get('subscriptionExpiry', null) == resource.data.get('subscriptionExpiry', null)
+                          ) ||
+                          // B) One-time 24-Hour Free Trial Activation or Trial / Subscription Expiration Transition
+                          (
+                            (
+                              resource.data.get('trialUsed', false) == false &&
+                              request.resource.data.subscriptionStatus == 'trial' &&
+                              request.resource.data.subscriptionPlan in ['sr_terminal_24h_trial', 'sr_terminal_7d_trial'] &&
+                              request.resource.data.trialUsed == true &&
+                              request.resource.data.isTrial == true
+                            ) ||
+                            (
+                              resource.data.subscriptionStatus in ['none', 'trial'] &&
+                              request.resource.data.subscriptionStatus == 'trial_expired'
+                            ) ||
+                            (
+                              resource.data.subscriptionStatus in ['PRO', 'active', 'cancelled'] &&
+                              request.resource.data.subscriptionStatus == 'expired'
+                            )
+                          ) ||
+                          // C) Verified Google Play Billing Pro Activation or Purchase Initiation
+                          (
+                            request.resource.data.subscriptionStatus in ['pending', 'PRO', 'active']
+                          )
+                        )
+                      )
+                    );
+
+      allow delete: if isAdmin();
+
+      // Cloud-persisted Trade Journals per user
+      match /journals/{tradeId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create, update: if (isOwner(userId) || isAdmin()) && isValidTradeJournalPayload(userId);
+        allow delete: if isOwner(userId) || isAdmin();
+      }
+
+      // Cloud-persisted Chart Drawings & Overlay Preferences per user
+      match /drawings/{drawingId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create, update: if (isOwner(userId) || isAdmin()) && isValidChartDrawingPayload(userId);
+        allow delete: if isOwner(userId) || isAdmin();
+      }
+    }
+
+    // 1b. Funded Accounts Collection (Prop Firm Pass Manager Cloud Persistence)
+    match /funded_accounts/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create, update: if (isOwner(userId) || isAdmin()) && isValidFundedAccountPayload(userId);
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+
+    // 2. Security Logs & Brute-Force Lockout Records
+    match /security_logs/{logId} {
+      allow read: if true;
+      allow create, update: if request.resource.data.keys().hasAll(['identifier', 'eventType', 'failedAttempts', 'createdAt']) &&
+                            isValidString(request.resource.data.identifier, 256) &&
+                            request.resource.data.eventType in ['AUTH_FAILED', 'OTP_FAILED', 'ACCOUNT_FROZEN_5M', 'AUTH_SUCCESS', 'LOCKOUT_RESET'] &&
+                            request.resource.data.failedAttempts is number &&
+                            isValidString(request.resource.data.createdAt, 64);
+      allow delete: if isAdmin();
+    }
+
+    // 3. Hashed Email OTP Records (5-minute expiry)
+    match /email_otps/{otpId} {
+      allow read: if isAdmin();
+      allow create, update: if request.resource.data.keys().hasAll(['email', 'codeHash', 'salt', 'attempts', 'expiresAt', 'createdAt']) &&
+                            isValidString(request.resource.data.email, 256) &&
+                            isValidString(request.resource.data.codeHash, 128) &&
+                            isValidString(request.resource.data.salt, 64) &&
+                            request.resource.data.attempts is number &&
+                            request.resource.data.expiresAt is number &&
+                            request.resource.data.createdAt is number;
+      allow delete: if isAdmin();
+    }
+
+    // 3b. Hashed 1-Hour Single-Use Password Reset Records
+    match /password_resets/{tokenId} {
+      allow read: if isAdmin();
+      allow create, update: if request.resource.data.keys().hasAll(['tokenHash', 'email', 'expiresAt', 'createdAt', 'used']) &&
+                            isValidString(request.resource.data.tokenHash, 128) &&
+                            isValidString(request.resource.data.email, 256) &&
+                            request.resource.data.expiresAt is number &&
+                            request.resource.data.createdAt is number &&
+                            request.resource.data.used is bool;
+      allow delete: if isAdmin();
+    }
+
+    // 4. Subscriptions Collection (Google Play Billing & RBI Auto-Pay Mandate Ledger)
+    match /subscriptions/{subId} {
+      allow read: if isAuthenticated() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() &&
+                    isValidSubscriptionPayload() &&
+                    (
+                      isAdmin() ||
+                      (
+                        request.resource.data.uid == request.auth.uid &&
+                        request.resource.data.status in ['TRIAL', 'PENDING', 'ACTIVE', 'PRO']
+                      )
+                    );
+      allow update: if isAuthenticated() &&
+                    isValidSubscriptionPayload() &&
+                    (
+                      isAdmin() ||
+                      (
+                        resource.data.uid == request.auth.uid &&
+                        request.resource.data.uid == resource.data.uid
+                      )
+                    );
+      allow delete: if isAdmin();
+    }
+
+    // 5. System Configuration Collection
+    match /system_config/{configId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // 6. Account Deletion Requests
+    match /deletionRequests/{requestId} {
+      allow create: if isAuthenticated() && isValidDeletionRequestPayload();
+      allow read, update, delete: if isAdmin();
+    }
+  }
+}

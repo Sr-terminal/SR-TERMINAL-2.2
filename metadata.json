@@ -1,0 +1,6 @@
+{
+  "name": "SR Terminal - Institutional ICT Workspace",
+  "description": "SR Terminal v2.8.9.17 PRO - Institutional trading terminal with 14 book-derived models, strict consensus engine, native Android trade notifications, 60/40 walk-forward backtesting, live tick charts & DOM orderbook, and zero Support/Resistance terminology.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

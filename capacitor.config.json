@@ -1,0 +1,11 @@
+{
+  "appId": "com.surajray.srterminal",
+  "appName": "SR Terminal",
+  "webDir": "dist",
+  "androidScheme": "https",
+  "hostname": "localhost",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": false
+  }
+}

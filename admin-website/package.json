@@ -1,0 +1,10 @@
+{
+  "name": "sr-terminal-admin-website",
+  "version": "3.0.0",
+  "private": true,
+  "description": "Standalone Cyber-Hardened Admin Control Website for SR TERMINAL (com.SRterminal.srterminal)",
+  "type": "module",
+  "scripts": {
+    "start": "npx serve -s . -l 4000"
+  }
+}
